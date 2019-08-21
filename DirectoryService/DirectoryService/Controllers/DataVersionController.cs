@@ -1,20 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using DirectoryService.DataLoaders;
-using DirectoryService.Models;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-
-namespace DirectoryService.Controllers
+﻿namespace DirectoryService.Controllers
 {
+    using System.Collections.Generic;
+    using DirectoryService.DataLoaders;
+    using DirectoryService.Models;
+    using Microsoft.AspNetCore.Mvc;
+
     [Route("api/DataVersion")]
     [ApiController]
     public class DataVersionController : ControllerBase
     {
         /// <summary>
-        /// Метод по получению всех данных из справочника "Объекты строительства".
+        /// Метод по получению всех данных из справочника "Версии данных".
         /// </summary>
         /// <returns></returns>
         [HttpGet]
@@ -24,11 +20,11 @@ namespace DirectoryService.Controllers
         }
 
         /// <summary>
-        /// Метод по получению одной записи из справочника "Объекты строительства".
+        /// Метод по получению одной записи из справочника "Версии данных".
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        [HttpGet("{id}", Name = "Get")]
+        [HttpGet("{id}", Name = "GetDataVersion")]
         public ВерсияДанных Get(int id) // GET: api/DataVersion/1
         {
             return DataLoader.ПолучитьДанныеСправочникаВерсииДанных()[id];

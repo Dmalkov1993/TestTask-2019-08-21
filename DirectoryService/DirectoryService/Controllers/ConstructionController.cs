@@ -1,15 +1,8 @@
 ﻿namespace DirectoryService.Controllers
 {
-    using System;
     using System.Collections.Generic;
-    using System.Data;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using System.Web.Http;
-    using ClosedXML.Excel;
     using DirectoryService.DataLoaders;
     using DirectoryService.Models;
-    using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
 
     [Route("api/Construction")]
@@ -31,7 +24,7 @@
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        [HttpGet("{id}", Name = "Get")]
+        [HttpGet("{id}", Name = "GetConstruction")]
         public ОбъектСтроительства Get(int id) // GET: api/Construction/1
         {
             return DataLoader.ПолучитьДанныеСправочникаОбъектыСтроительства()[id];

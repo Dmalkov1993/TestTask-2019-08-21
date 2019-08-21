@@ -61,7 +61,7 @@
             Dictionary<int, ВерсияДанных> версииДанных = new Dictionary<int, ВерсияДанных>();
 
             // Открываем файл
-            XLWorkbook workBook = new XLWorkbook("DataVersions.xlsx");
+            XLWorkbook workBook = new XLWorkbook("DataSources\\DataVersions.xlsx");
             IXLWorksheet workSheet = workBook.Worksheet(1);
 
             int indexOfLastRow = workSheet.RangeUsed().LastRowUsed().RangeAddress.FirstAddress.RowNumber;
