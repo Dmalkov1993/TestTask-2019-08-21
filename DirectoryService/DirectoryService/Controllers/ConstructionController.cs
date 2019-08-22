@@ -14,7 +14,7 @@
         /// </summary>
         /// <returns></returns>
         [HttpGet]
-        public JsonResult Get() // GET: api/Construction
+        public ActionResult Get() // GET: api/Construction
         {
             try
             {
@@ -22,7 +22,10 @@
             }
             catch
             {
-                return new JsonResult(new EmptyResult());
+                // Отлавливается исключение на уровне чтения Excel файла, считаем что это 500-я ошибка
+                return this.StatusCode(500);
+
+                // TODO: Запись в логи
             }
         }
 
@@ -32,15 +35,33 @@
         /// <param name="id"></param>
         /// <returns></returns>
         [HttpGet("{id}", Name = "GetConstruction")]
-        public JsonResult Get(int id) // GET: api/Construction/1
+        public ActionResult Get(int id) // GET: api/Construction/1
         {
             try
             {
-                return new JsonResult(DataLoader.ПолучитьДанныеСправочникаОбъектыСтроительства()[id]);
+                Dictionary<int, ОбъектСтроительства> объектыСтроительства = DataLoader.ПолучитьДанныеСправочникаОбъектыСтроительства();
+
+                ОбъектСтроительства объектСтроительства = new ОбъектСтроительства();
+
+                if (объектыСтроительства.TryGetValue(id, out объектСтроительства))
+                {
+                    // JsonResult сам вернёт 200
+                    return new JsonResult(объектСтроительства);
+                }
+                else
+                {
+                    // Кидаем 404-ю, так как запрашиваемый объект не найден
+                    return this.StatusCode(404);
+
+                    // TODO: Запись в логи
+                }
             }
             catch
             {
-                return new JsonResult(new EmptyResult());
+                // Кидаем 500-ю ошибку, так как поймали исключение во время чтения данных
+                return this.StatusCode(500);
+
+                // TODO: Запись в логи
             }
         }
     }
