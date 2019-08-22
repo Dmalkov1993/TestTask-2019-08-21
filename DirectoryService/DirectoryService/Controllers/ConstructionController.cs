@@ -14,9 +14,16 @@
         /// </summary>
         /// <returns></returns>
         [HttpGet]
-        public IEnumerable<ОбъектСтроительства> Get() // GET: api/Construction
+        public JsonResult Get() // GET: api/Construction
         {
-            return DataLoader.ПолучитьДанныеСправочникаОбъектыСтроительства().Values;
+            try
+            {
+                return new JsonResult(DataLoader.ПолучитьДанныеСправочникаОбъектыСтроительства().Values);
+            }
+            catch
+            {
+                return new JsonResult(new EmptyResult());
+            }
         }
 
         /// <summary>
@@ -25,9 +32,16 @@
         /// <param name="id"></param>
         /// <returns></returns>
         [HttpGet("{id}", Name = "GetConstruction")]
-        public ОбъектСтроительства Get(int id) // GET: api/Construction/1
+        public JsonResult Get(int id) // GET: api/Construction/1
         {
-            return DataLoader.ПолучитьДанныеСправочникаОбъектыСтроительства()[id];
+            try
+            {
+                return new JsonResult(DataLoader.ПолучитьДанныеСправочникаОбъектыСтроительства()[id]);
+            }
+            catch
+            {
+                return new JsonResult(new EmptyResult());
+            }
         }
     }
 }

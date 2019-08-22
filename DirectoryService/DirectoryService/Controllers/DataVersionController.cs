@@ -14,9 +14,16 @@
         /// </summary>
         /// <returns></returns>
         [HttpGet]
-        public IEnumerable<ВерсияДанных> Get() // GET: api/DataVersion
+        public JsonResult Get() // GET: api/DataVersion
         {
-            return DataLoader.ПолучитьДанныеСправочникаВерсииДанных().Values;
+            try
+            {
+                return new JsonResult(DataLoader.ПолучитьДанныеСправочникаВерсииДанных().Values);
+            }
+            catch
+            {
+                return new JsonResult(new EmptyResult());
+            }
         }
 
         /// <summary>
@@ -25,9 +32,16 @@
         /// <param name="id"></param>
         /// <returns></returns>
         [HttpGet("{id}", Name = "GetDataVersion")]
-        public ВерсияДанных Get(int id) // GET: api/DataVersion/1
+        public JsonResult Get(int id) // GET: api/DataVersion/1
         {
-            return DataLoader.ПолучитьДанныеСправочникаВерсииДанных()[id];
+            try
+            {
+                return new JsonResult(DataLoader.ПолучитьДанныеСправочникаВерсииДанных()[id]);
+            }
+            catch
+            {
+                return new JsonResult(new EmptyResult());
+            }
         }
     }
 }
