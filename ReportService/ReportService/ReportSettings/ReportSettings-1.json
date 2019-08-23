@@ -1,0 +1,6 @@
+﻿{
+  "ID_DirectoryOnRows": 1,
+  "ID_DirectoryOnColumns": 2,
+  "AttributesOfDirectoryOnRows": [ "Code", "Name" ],
+  "AttributesOfDirectoryOnColumns": [ "Name" ]
+}

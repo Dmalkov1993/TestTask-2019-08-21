@@ -22,7 +22,9 @@
         /// </summary>
         public string name_sprav { get; set; }
 
-        // перечень и свойства атрибутов
+        /// <summary>
+        /// Перечень и свойства атрибутов.
+        /// </summary>
         public List<АтрибутСправочника> attr_sprav { get; set; }
 
         /// <summary>
