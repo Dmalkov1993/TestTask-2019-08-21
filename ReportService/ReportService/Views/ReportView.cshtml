@@ -1,7 +1,9 @@
-﻿
+﻿@model System.Data.DataTable
 @{
     ViewData["Title"] = "ReportView";
 }
 
 <h2>ReportView</h2>
 
+@using ReportService.Helpers
+@TableHelper.DataTableToHtmlTable(Model)
