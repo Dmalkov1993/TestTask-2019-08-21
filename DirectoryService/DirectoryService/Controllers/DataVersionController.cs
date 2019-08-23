@@ -22,7 +22,7 @@
             {
                 if (getMeta)
                 {
-                    return new JsonResult(new МетаданныеСправочника(new ОбъектСтроительства()));
+                    return new JsonResult(new МетаданныеСправочника(new ВерсияДанных()));
                 }
 
                 return new JsonResult(DataLoader.ПолучитьДанныеСправочникаВерсииДанных().Values);
