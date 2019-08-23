@@ -254,15 +254,6 @@ namespace ReportService.Controllers
             return имяСправочника;
         }
 
-
-
-        // GET: api/Report/5
-        [HttpGet("{id}", Name = "GetConstruction")]
-        public string GetConstruction(int constructionId, int dataVersionId)
-        {
-            return "value";
-        }
-
         /// <summary>
         /// Метод содержит конструкции, по созданию всех возможных вариаций запросов к сервису справочников (DirectoryService)
         /// </summary>
