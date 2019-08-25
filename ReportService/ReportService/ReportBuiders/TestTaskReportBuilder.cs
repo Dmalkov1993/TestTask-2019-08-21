@@ -10,7 +10,7 @@
     /// <summary>
     /// Класс для построения отчёта согласно тестовому заданию.
     /// </summary>
-    public class TestTaskReportBuilder
+    public class TestTaskReportBuilder : IReportBuilder
     {
         /// <summary>
         /// Основной метод по построению отчёта.

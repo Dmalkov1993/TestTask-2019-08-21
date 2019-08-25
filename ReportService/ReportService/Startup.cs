@@ -10,7 +10,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using ReportService.Controllers;
 using ReportService.Objects;
+using ReportService.ReportBuiders;
 
 namespace ReportService
 {
@@ -36,6 +38,12 @@ namespace ReportService
 
             // Чтение конфигурации URL-ов
             services.Configure<UrlSettings>(Configuration.GetSection("UrlSettings"));
+
+            // Регистрация нашего билдера для тестового задания
+            services.AddSingleton<IReportBuilder, TestTaskReportBuilder>();
+
+            // Регистрация mock-билдера
+            // services.AddSingleton<IReportBuilder, MockReportBuilder>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

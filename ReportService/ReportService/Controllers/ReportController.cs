@@ -1,33 +1,30 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using System.Web;
-using System.Net.Http;
-using Newtonsoft.Json;
-using ReportService.Objects;
-using System.Text;
-using System.IO;
-using System.Data;
-using System.Reflection;
-using Microsoft.Extensions.Options;
-using ReportService.ReportBuiders;
-
-namespace ReportService.Controllers
+﻿namespace ReportService.Controllers
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading.Tasks;
+    using Microsoft.AspNetCore.Mvc;
+    using System.Net.Http;
+    using ReportService.Objects;
+    using System.Data;
+    using Microsoft.Extensions.Options;
+    using ReportService.ReportBuiders;
+
     [Route("api/[controller]")]
     [ApiController]
     public class ReportController : Controller
     {
-        public ReportController(IOptions<List<ReportSetting>> reportSettings, IOptions<UrlSettings> urlSettings)
+        public ReportController(IOptions<List<ReportSetting>> reportSettings, IOptions<UrlSettings> urlSettings, IReportBuilder reportBuilder)
         {
             // Подхватываем настройки для отчётов
             this.reportSettings = reportSettings.Value;
 
             // Подхватываем наши URL-ы
             this.urlSettings = urlSettings.Value;
+
+            // Подхватываем билдер отчёта, указанный в Startup-е
+            this.reportBuilder = reportBuilder;
         }
 
         /// <summary>
@@ -40,16 +37,15 @@ namespace ReportService.Controllers
         /// </summary>
         private UrlSettings urlSettings { get; set; }
 
-        // Файл настроек отчёта согласно заданию - "ReportSettings-1.json"
-        // public const string fileWithSettingsForReport = "ReportSettings-3-All.json"; // Можно и "ReportSettings-2.json" и "ReportSettings-3-All.json"
-
-        // GET: api/Report
+        /// <summary>
+        /// Наш ReportBuilder, подхваченный из DI.
+        /// </summary>
+        private IReportBuilder reportBuilder;
+    
         [HttpGet]
         [HttpGet("{reportSettingID}", Name = "MakeReport")]
         public async Task<ActionResult> GetAsync(int reportSettingID = 1)
         {
-            TestTaskReportBuilder testTaskReportBuilder = new TestTaskReportBuilder();
-
             try
             {
                 IEnumerable<ConstructionObject> constructionObjects;
@@ -97,7 +93,7 @@ namespace ReportService.Controllers
                 catch (Exception ex) { }
 
                 // Билдим отчёт.
-                DataTable report = testTaskReportBuilder.BuildReport(reportSetting, constructionObjects, dataVersions);
+                DataTable report = reportBuilder.BuildReport(reportSetting, constructionObjects, dataVersions);
 
                 return View("~/Views/ReportView.cshtml", report);
             }
