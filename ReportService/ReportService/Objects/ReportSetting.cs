@@ -8,6 +8,11 @@
     public class ReportSetting
     {
         /// <summary>
+        /// Идентификатор настройки.
+        /// </summary>
+        public int ConfigurationID { get; set; }
+
+        /// <summary>
         /// Идентификатор справочника по строкам.
         /// </summary>
         public int DirectoryIdOnRows { get; set; }

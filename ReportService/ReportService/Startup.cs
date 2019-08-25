@@ -10,6 +10,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using ReportService.Objects;
 
 namespace ReportService
 {
@@ -26,6 +27,12 @@ namespace ReportService
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+
+            // Настройка параметров и DI
+            services.AddOptions();
+
+            // создание объекта List<ReportSetting> (настроек отчётов) по ключам из конфигурации
+            services.Configure<List<ReportSetting>>(Configuration.GetSection("ReportSettings"));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

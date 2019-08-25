@@ -12,6 +12,7 @@ using System.Text;
 using System.IO;
 using System.Data;
 using System.Reflection;
+using Microsoft.Extensions.Options;
 
 namespace ReportService.Controllers
 {
@@ -19,15 +20,23 @@ namespace ReportService.Controllers
     [ApiController]
     public class ReportController : Controller
     {
+        public ReportController(IOptions<List<ReportSetting>> reportSettings)
+        {
+            this.reportSettings = reportSettings.Value;
+        }
+
+        public List<ReportSetting> reportSettings { get; set; }
+
         public const string constructionObjectUrl = "https://localhost:44366/api/ConstructionObjects/";
         public const string DataVersionUrl = "https://localhost:44366/api/DataVersions/";
 
         // Файл настроек отчёта согласно заданию - "ReportSettings-1.json"
-        public const string fileWithSettingsForReport = "ReportSettings-3-All.json"; // Можно и "ReportSettings-2.json" и "ReportSettings-3-All.json"
+        // public const string fileWithSettingsForReport = "ReportSettings-3-All.json"; // Можно и "ReportSettings-2.json" и "ReportSettings-3-All.json"
 
         // GET: api/Report
         [HttpGet]
-        public ActionResult Get()
+        [HttpGet("{reportSettingID}", Name = "MakeReport")]
+        public async Task<ActionResult> GetAsync(int reportSettingID = 1)
         {
             try
             {
@@ -44,34 +53,40 @@ namespace ReportService.Controllers
                     if (IsNeedtest)
                     {
                         // Этот метод делает все воможные запросы к сервису DirectoryService (чисто в рамках демонстрации)
-                        TestDirectoryServiceApi();
+                        await TestDirectoryServiceApiAsync();
                     }
 
                     // Запрашиваем весь справочник "Объекты Строительства"
                     response = client.GetAsync($"{constructionObjectUrl}GetAllDirectory").Result;
-                    constructionObjects = response.Content.ReadAsAsync<IEnumerable<ConstructionObject>>().Result;
-
-                    // constructionObjects = JsonConvert.DeserializeObject<IEnumerable<ConstructionObject>>(requestResult);
+                    constructionObjects = await response.Content.ReadAsAsync<IEnumerable<ConstructionObject>>();
 
                     // Запрашиваем весь справочник "Версии данных"
                     response = client.GetAsync($"{DataVersionUrl}GetAllDirectory").Result;
-                    dataVersions = response.Content.ReadAsAsync<IEnumerable<DataVersion>>().Result;
+                    dataVersions = await response.Content.ReadAsAsync<IEnumerable<DataVersion>>();
 
                     // dataVersions = JsonConvert.DeserializeObject<IEnumerable<DataVersion>>(requestResult);
                 }
-                // Читаем настройки отчёта. В силу упрощения задания - без явного указания 
-                // СоздатьНастройкуОтчёта();
 
-                ReportSetting reportSetting;
+                // Берём из настроек конфигурацию отчёта
+                ReportSetting reportSetting = new ReportSetting();
 
-                using (StreamReader reader = new StreamReader($"ReportSettings\\{fileWithSettingsForReport}", Encoding.UTF8))
+                try
                 {
-                    string json = reader.ReadToEnd();
-                    reportSetting = JsonConvert.DeserializeObject<ReportSetting>(json);
+                    var reportSettingCol = reportSettings.Where(set => set.ConfigurationID == reportSettingID);
+
+                    if (reportSettingCol.Any())
+                    {
+                        reportSetting = reportSettingCol.First();
+                    }
+                    else
+                    {
+                        // Если настойка не найдена, говорим 404.
+                        return this.StatusCode(404);
+                    }
                 }
-
+                catch (Exception ex) { }
+                
                 // Строим отчёт. Считаем, что в настройках разработчики указали верный набор параметров атрибутов для справочников.
-
                 DataTable report = new DataTable();
 
                 string directoryNameByColumns = GetDirectoryNameByID(reportSetting.DirectoryIdOnColumns);
@@ -262,7 +277,7 @@ namespace ReportService.Controllers
         /// <summary>
         /// Метод содержит конструкции, по созданию всех возможных вариаций запросов к сервису справочников (DirectoryService)
         /// </summary>
-        private void TestDirectoryServiceApi()
+        private async Task TestDirectoryServiceApiAsync()
         {
             using (var client = new HttpClient())
             {
@@ -271,11 +286,11 @@ namespace ReportService.Controllers
                 // Запросим и десериализуем метаданные по справочникам:
                 // Для справочника "Объекты Строительства"
                 response = client.GetAsync($"{constructionObjectUrl}GetMetadata").Result;
-                DirectoryMetadata MetadataDirectoryOfConstructionObjects = response.Content.ReadAsAsync<DirectoryMetadata>().Result;
+                DirectoryMetadata MetadataDirectoryOfConstructionObjects = await response.Content.ReadAsAsync<DirectoryMetadata>();
                 
                 // Для справочника "Версии Данных"
                 response = client.GetAsync($"{DataVersionUrl}GetMetadata").Result;
-                DirectoryMetadata MetadataDirectoryOfDataVersions = response.Content.ReadAsAsync<DirectoryMetadata>().Result;
+                DirectoryMetadata MetadataDirectoryOfDataVersions = await response.Content.ReadAsAsync<DirectoryMetadata>();
 
 
                 // TODO: Полученные метаданные можно сравнивать с метаданными объектов этого сервиса
@@ -285,24 +300,24 @@ namespace ReportService.Controllers
 
                 // Запрашиваем весь справочник "Объекты Строительства"
                 response = client.GetAsync($"{constructionObjectUrl}GetAllDirectory").Result;
-                IEnumerable<ConstructionObject> сonstructionObjects = response.Content.ReadAsAsync<IEnumerable<ConstructionObject>>().Result;
+                IEnumerable<ConstructionObject> сonstructionObjects = await response.Content.ReadAsAsync<IEnumerable<ConstructionObject>>();
                 
                 // Запрашиваем весь справочник "Версии Данных"
                 response = client.GetAsync($"{DataVersionUrl}GetAllDirectory").Result;
-                IEnumerable<DataVersion> dataVersions = response.Content.ReadAsAsync<IEnumerable<DataVersion>>().Result;
+                IEnumerable<DataVersion> dataVersions = await response.Content.ReadAsAsync<IEnumerable<DataVersion>>();
                 
                 // Запросим Объект Строительства с идом = 2:
                 int indexOfConstructionObject = 2;
 
                 response = client.GetAsync($"{constructionObjectUrl}Elements/{indexOfConstructionObject}").Result;
-                ConstructionObject сonstructionObject = response.Content.ReadAsAsync<ConstructionObject>().Result;
+                ConstructionObject сonstructionObject = await response.Content.ReadAsAsync<ConstructionObject>();
 
 
                 // Запросим Версию Данных с идом = 3:
                 int indexOfDataVersion = 3;
 
                 response = client.GetAsync($"{DataVersionUrl}Elements/{indexOfConstructionObject}").Result;
-                DataVersion dataVersion = response.Content.ReadAsAsync<DataVersion>().Result;
+                DataVersion dataVersion = await response.Content.ReadAsAsync<DataVersion>();
 
 
                 // Попробуем запросить Версию Данных с идом = 88:
@@ -311,7 +326,7 @@ namespace ReportService.Controllers
                 response = client.GetAsync($"{DataVersionUrl}Elements/{indexOfDataVersion}").Result;
 
                 // dataVersionEmpty будет = null.
-                DataVersion dataVersionEmpty = response.Content.ReadAsAsync<DataVersion>().Result;   
+                DataVersion dataVersionEmpty = await response.Content.ReadAsAsync<DataVersion>();   
             }
         }
 
@@ -320,22 +335,32 @@ namespace ReportService.Controllers
         /// </summary>
         private void CreateReportSetting()
         {
-            ReportSetting reportSetting = new ReportSetting();
+            List<ReportSetting> ReportSettings = new List<ReportSetting>();
 
-            reportSetting.DirectoryIdOnRows = 1; // Берём "Объекты строительства"
-            reportSetting.DirectoryIdOnColumns = 2; // Берём "Версии данных"
+            for (int confID = 1; confID < 4; confID++ )
+            {
+                ReportSetting reportSetting = new ReportSetting();
 
-            // По заданию - справочник по строкам – «Объекты строительства» с атрибутами «Код объекта» и «Наименование»
-            reportSetting.AttributesOfDirectoryOnRows.Add("Code");
-            reportSetting.AttributesOfDirectoryOnRows.Add("Name");
+                reportSetting.ConfigurationID = confID;
 
-            // По заданию - справочник по столбцам – «Версии данных» (возьмём только атрибут "Наименование", чтобы вывести столбцы Версия 1 Версия 2 Версия 3)
-            reportSetting.AttributesOfDirectoryOnColumns.Add("Name");
+                reportSetting.DirectoryIdOnRows = 1; // Берём "Объекты строительства"
+                reportSetting.DirectoryIdOnColumns = 2; // Берём "Версии данных"
 
+                // По заданию - справочник по строкам – «Объекты строительства» с атрибутами «Код объекта» и «Наименование»
+                reportSetting.AttributesOfDirectoryOnRows.Add("Code");
+                reportSetting.AttributesOfDirectoryOnRows.Add("Name");
+
+                // По заданию - справочник по столбцам – «Версии данных» (возьмём только атрибут "Наименование", чтобы вывести столбцы Версия 1 Версия 2 Версия 3)
+                reportSetting.AttributesOfDirectoryOnColumns.Add("Name");
+
+                // Добавляем в коллекцию настроек
+                ReportSettings.Add(reportSetting);
+            }
+            
             // Сериализуем и в файлик "ReportSettings-1.json", где 1 - пусть будет номер конфигурации
-            string queryListForWriting = JsonConvert.SerializeObject(reportSetting);
+            string queryListForWriting = JsonConvert.SerializeObject(ReportSettings);
 
-            using (StreamWriter sw = new StreamWriter("ReportSettings-1.json", false, Encoding.UTF8))
+            using (StreamWriter sw = new StreamWriter("ReportSettings_new.json", false, Encoding.UTF8))
             {
                 sw.WriteLine(queryListForWriting);
             }

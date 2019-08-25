@@ -1,6 +1,0 @@
-﻿{
-  "DirectoryIdOnRows": 1,
-  "DirectoryIdOnColumns": 2,
-  "AttributesOfDirectoryOnRows": [ "ID", "Code", "Name", "Budget" ],
-  "AttributesOfDirectoryOnColumns": [ "Name", "VersionType" ]
-}
