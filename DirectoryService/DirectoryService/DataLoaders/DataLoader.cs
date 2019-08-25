@@ -16,10 +16,10 @@
         /// Метод по получению списка объектов справочника "ОбъектыСтроительства".
         /// </summary>
         /// <returns>Список объектов справочника "ОбъектыСтроительства".</returns>
-        public static Dictionary<int, ОбъектСтроительства> ПолучитьДанныеСправочникаОбъектыСтроительства()
+        public static Dictionary<int, ConstructionObject> GetDataOfConstructionObjectsDirectory()
         {
             // Прочитаем Excel файл с данными:
-            Dictionary<int, ОбъектСтроительства> объектыСтроительства = new Dictionary<int, ОбъектСтроительства>();
+            Dictionary<int, ConstructionObject> objectsOfBuilding = new Dictionary<int, ConstructionObject>();
 
             // Открываем файл
             XLWorkbook workBook = new XLWorkbook("DataSources\\ConstructionObjects.xlsx");
@@ -37,9 +37,9 @@
                 int id = Convert.ToInt32(row.Cell(1).Value);
 
                 // Создаём и добавляем элементы в List.
-                объектыСтроительства.Add(
+                objectsOfBuilding.Add(
                     id,
-                    new ОбъектСтроительства
+                    new ConstructionObject
                     {
                         ID = id,
                         Name = row.Cell(2).Value.ToString(),
@@ -48,17 +48,17 @@
                     });
             }
 
-            return объектыСтроительства;
+            return objectsOfBuilding;
         }
 
         /// <summary>
         /// Метод по получению списка объектов справочника "ОбъектыСтроительства".
         /// </summary>
         /// <returns>Список объектов справочника "ОбъектыСтроительства".</returns>
-        public static Dictionary<int, ВерсияДанных> ПолучитьДанныеСправочникаВерсииДанных()
+        public static Dictionary<int, DataVersion> GetDataOfDataVersionDirectory()
         {
             // Прочитаем Excel файл с данными:
-            Dictionary<int, ВерсияДанных> версииДанных = new Dictionary<int, ВерсияДанных>();
+            Dictionary<int, DataVersion> dataVersions = new Dictionary<int, DataVersion>();
 
             // Открываем файл
             XLWorkbook workBook = new XLWorkbook("DataSources\\DataVersions.xlsx");
@@ -76,9 +76,9 @@
                 int id = Convert.ToInt32(row.Cell(1).Value);
 
                 // Создаём и добавляем элементы.
-                версииДанных.Add(
+                dataVersions.Add(
                     id,
-                    new ВерсияДанных
+                    new DataVersion
                     {
                         ID = id,
                         Name = row.Cell(2).Value.ToString(),
@@ -86,7 +86,7 @@
                     });
             }
 
-            return версииДанных;
+            return dataVersions;
         }
     }
 }

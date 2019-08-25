@@ -5,7 +5,7 @@ namespace DirectoryService.Models
     /// <summary>
     /// Класс, описывающий атрибуты свойств справочника.
     /// </summary>
-    public class АтрибутСправочника
+    public class DirectoryAttribute
     {
         /// <summary>
         /// Имя атрибута.
@@ -17,15 +17,15 @@ namespace DirectoryService.Models
         /// </summary>
         public string AttrType { get; set; }
 
-        public АтрибутСправочника() { }
+        public DirectoryAttribute() { }
 
-        public АтрибутСправочника(string attrName, string attrType)
+        public DirectoryAttribute(string attrName, string attrType)
         {
             this.AttrName = attrName;
             this.AttrType = attrType;
         }
 
-        public АтрибутСправочника(PropertyInfo propertyInfo)
+        public DirectoryAttribute(PropertyInfo propertyInfo)
             : this(propertyInfo.Name, propertyInfo.PropertyType.Name)
         { }
     }

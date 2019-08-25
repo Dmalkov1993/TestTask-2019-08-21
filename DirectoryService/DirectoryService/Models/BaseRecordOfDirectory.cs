@@ -3,7 +3,7 @@
     /// <summary>
     /// Каждая запись справочника объектов и версии данных имеет два поля - ID и Name.
     /// </summary>
-    public abstract class БазоваяЗаписьСправочника
+    public abstract class BaseElementOfDirectory
     {
         /// <summary>
         /// Уникальный идентификатор объекта справочника.

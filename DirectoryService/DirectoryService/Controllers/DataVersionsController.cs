@@ -6,27 +6,22 @@
     using DirectoryService.Models;
     using Microsoft.AspNetCore.Mvc;
 
-    // [Route("api/Construction")] - можно указать и здесь аттрибут Route
-    // или можно ещё в таком формате указывать роут: 
-    // [Route("api/[controller]/[action]")]
-    // или 
-    // [Route("api/[controller]/[action]/{id}")]
-
+    // [Route("api/DataVersion")]
     [ApiController]
-    public class ConstructionObjectsController : ControllerBase
+    public class DataVersionsController : ControllerBase
     {
         /// <summary>
-        /// Метод по получению всех данных из справочника "Объекты строительства".
+        /// Метод по получению всех данных из справочника "Версии данных".
         /// </summary>
         /// <returns></returns>
-        [Route("api/ConstructionObjectsDirectory/GetAllDirectory")]
+        [Route("api/DataVersionsDirectory/GetAllDirectory")]
         [HttpGet]
-        public ActionResult<Dictionary<int, ConstructionObject>.ValueCollection> Get()
+        public ActionResult<Dictionary<int, DataVersion>.ValueCollection> Get()
         {
             // TODO: можно подобную конструкцию в контроллере DataVersionController вынести в метод базового контроллера
             try
             {
-                return DataLoader.GetDataOfConstructionObjectsDirectory().Values;
+                return DataLoader.GetDataOfDataVersionDirectory().Values;
             }
             catch (Exception ex)
             {
@@ -38,17 +33,16 @@
         }
 
         /// <summary>
-        /// Метод по получению метаданных из справочника "Объекты строительства".
+        /// Метод по получению метаданных справочника "Версии данных".
         /// </summary>
         /// <returns></returns>
-        [Route("api/ConstructionObjectsDirectory/GetMetadata")]
+        [Route("api/DataVersionsDirectory/GetMetadata")]
         [HttpGet]
         public ActionResult<DirectoryMetadata> GetMetadata()
         {
-            // TODO: можно подобную конструкцию в контроллере DataVersionController вынести в метод базового контроллера
             try
             {
-                return new DirectoryMetadata(new ConstructionObject());
+                return new DirectoryMetadata(new DataVersion());
             }
             catch (Exception ex)
             {
@@ -60,23 +54,23 @@
         }
 
         /// <summary>
-        /// Метод по получению одной записи из справочника "Объекты строительства".
+        /// Метод по получению одной записи из справочника "Версии данных".
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        [Route("api/ConstructionObjectsDirectory/Elements/{id}")]
-        [HttpGet("{id}", Name = "GetConstruction")]
-        public ActionResult<ConstructionObject> Get(int id) // GET: api/Construction/1
+        [Route("api/DataVersionsDirectory/Elements/{id}")]
+        [HttpGet("{id}", Name = "GetDataVersion")]
+        public ActionResult<DataVersion> Get(int id) // GET: api/DataVersion/Elements/1
         {
             try
             {
-                Dictionary<int, ConstructionObject> objectsOfBuilding = DataLoader.GetDataOfConstructionObjectsDirectory();
+                Dictionary<int, DataVersion> dataVersionElements = DataLoader.GetDataOfDataVersionDirectory();
 
-                ConstructionObject objectOfBuilding = new ConstructionObject();
+                DataVersion dataVersionElement = new DataVersion();
 
-                if (objectsOfBuilding.TryGetValue(id, out objectOfBuilding))
+                if (dataVersionElements.TryGetValue(id, out dataVersionElement))
                 {
-                    return objectOfBuilding;
+                    return dataVersionElement;
                 }
                 else
                 {

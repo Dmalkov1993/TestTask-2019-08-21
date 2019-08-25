@@ -9,16 +9,16 @@
     {
         // GET: api/AppStart
         [HttpGet]
-        public ActionResult Get()
+        public ActionResult<string> Get()
         {
             try
             {
                 // Заодно проверим чтение справочников из псевдо-БД
-                var версииДанных = DataLoader.ПолучитьДанныеСправочникаВерсииДанных();
-                var объектыСтроительства = DataLoader.ПолучитьДанныеСправочникаОбъектыСтроительства();
+                var dataVersionDirectory = DataLoader.GetDataOfDataVersionDirectory();
+                var objectsOfBuildingDirectory = DataLoader.GetDataOfConstructionObjectsDirectory();
 
                 string response =
-                $"App start successfully! Total readed objects: Data versions: {версииДанных.Count} Construction objects: {объектыСтроительства.Count}" +
+                $"App start successfully! Total readed objects: Data versions: {dataVersionDirectory.Count} Construction objects: {objectsOfBuildingDirectory.Count}" +
                     "\n\nTry get Construction objects: https://localhost:44366/api/Construction/3 " +
                     "\nor https://localhost:44366/api/Construction to get all Construction objects" +
                     "\n\nTry get Data Versions: https://localhost:44366/api/DataVersion/3 " +
@@ -28,7 +28,7 @@
                     "\n https://localhost:44366/api/DataVersion?getMeta=true";
 
                 // Если не упали - говорим Ура.
-                return this.StatusCode(200, response);
+                return response; //this.StatusCode(200, response);
             }
             catch
             {
