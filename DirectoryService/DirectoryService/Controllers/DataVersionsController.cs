@@ -14,7 +14,7 @@
         /// Метод по получению всех данных из справочника "Версии данных".
         /// </summary>
         /// <returns></returns>
-        [Route("api/DataVersionsDirectory/GetAllDirectory")]
+        [Route("api/DataVersions/GetAllDirectory")]
         [HttpGet]
         public ActionResult<Dictionary<int, DataVersion>.ValueCollection> Get()
         {
@@ -36,7 +36,7 @@
         /// Метод по получению метаданных справочника "Версии данных".
         /// </summary>
         /// <returns></returns>
-        [Route("api/DataVersionsDirectory/GetMetadata")]
+        [Route("api/DataVersions/GetMetadata")]
         [HttpGet]
         public ActionResult<DirectoryMetadata> GetMetadata()
         {
@@ -58,7 +58,7 @@
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        [Route("api/DataVersionsDirectory/Elements/{id}")]
+        [Route("api/DataVersions/Elements/{id}")]
         [HttpGet("{id}", Name = "GetDataVersion")]
         public ActionResult<DataVersion> Get(int id) // GET: api/DataVersion/Elements/1
         {

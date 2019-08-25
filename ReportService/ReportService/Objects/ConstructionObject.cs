@@ -3,7 +3,7 @@
     /// <summary>
     /// Класс, описывающий запись в справочнике "ConstructionObjects" (Объекты строительства).
     /// </summary>
-    public class ОбъектСтроительства : БазоваяЗаписьСправочника
+    public class ConstructionObject : BaseElementOfDirectory
     {
         /// <summary>
         /// Код объекта строительства.

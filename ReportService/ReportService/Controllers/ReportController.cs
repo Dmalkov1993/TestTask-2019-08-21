@@ -19,10 +19,11 @@ namespace ReportService.Controllers
     [ApiController]
     public class ReportController : Controller
     {
-        public const string directoryServiceUrl = "https://localhost:44366/api";
+        public const string constructionObjectUrl = "https://localhost:44366/api/ConstructionObjects/";
+        public const string DataVersionUrl = "https://localhost:44366/api/DataVersions/";
 
         // Файл настроек отчёта согласно заданию - "ReportSettings-1.json"
-        public const string файлНастроек = "ReportSettings-1.json"; // Можно и "ReportSettings-2.json" и "ReportSettings-3-All.json"
+        public const string fileWithSettingsForReport = "ReportSettings-3-All.json"; // Можно и "ReportSettings-2.json" и "ReportSettings-3-All.json"
 
         // GET: api/Report
         [HttpGet]
@@ -30,13 +31,13 @@ namespace ReportService.Controllers
         {
             try
             {
-                IEnumerable<ОбъектСтроительства> объектыСтроительства;
-                IEnumerable<ВерсияДанных> версииДанных;
+                IEnumerable<ConstructionObject> constructionObjects;
+                IEnumerable<DataVersion> dataVersions;
 
                 using (var client = new HttpClient())
                 {
                     HttpResponseMessage response;
-                    string результатЗапроса = string.Empty;
+                    string requestResult = string.Empty;
 
                     bool IsNeedtest = false;
 
@@ -47,92 +48,92 @@ namespace ReportService.Controllers
                     }
 
                     // Запрашиваем весь справочник "Объекты Строительства"
-                    response = client.GetAsync(directoryServiceUrl + "/Construction").Result;
-                    результатЗапроса = response.Content.ReadAsStringAsync().Result;
+                    response = client.GetAsync($"{constructionObjectUrl}GetAllDirectory").Result;
+                    constructionObjects = response.Content.ReadAsAsync<IEnumerable<ConstructionObject>>().Result;
 
-                    объектыСтроительства = JsonConvert.DeserializeObject<IEnumerable<ОбъектСтроительства>>(результатЗапроса);
+                    // constructionObjects = JsonConvert.DeserializeObject<IEnumerable<ConstructionObject>>(requestResult);
 
-                    // Запрашиваем весь справочник "Объекты Строительства"
-                    response = client.GetAsync(directoryServiceUrl + "/DataVersion").Result;
-                    результатЗапроса = response.Content.ReadAsStringAsync().Result;
+                    // Запрашиваем весь справочник "Версии данных"
+                    response = client.GetAsync($"{DataVersionUrl}GetAllDirectory").Result;
+                    dataVersions = response.Content.ReadAsAsync<IEnumerable<DataVersion>>().Result;
 
-                    версииДанных = JsonConvert.DeserializeObject<IEnumerable<ВерсияДанных>>(результатЗапроса);
+                    // dataVersions = JsonConvert.DeserializeObject<IEnumerable<DataVersion>>(requestResult);
                 }
                 // Читаем настройки отчёта. В силу упрощения задания - без явного указания 
                 // СоздатьНастройкуОтчёта();
 
-                ReportSetting настройкаОтчёта;
+                ReportSetting reportSetting;
 
-                using (StreamReader reader = new StreamReader($"ReportSettings\\{файлНастроек}", Encoding.UTF8))
+                using (StreamReader reader = new StreamReader($"ReportSettings\\{fileWithSettingsForReport}", Encoding.UTF8))
                 {
-                    string jsonПредставление = reader.ReadToEnd();
-                    настройкаОтчёта = JsonConvert.DeserializeObject<ReportSetting>(jsonПредставление);
+                    string json = reader.ReadToEnd();
+                    reportSetting = JsonConvert.DeserializeObject<ReportSetting>(json);
                 }
 
                 // Строим отчёт. Считаем, что в настройках разработчики указали верный набор параметров атрибутов для справочников.
 
-                DataTable отчёт = new DataTable();
+                DataTable report = new DataTable();
 
-                string справочникСтолбцы = ПолучитьИмяСправочникаПоЕгоИД(настройкаОтчёта.DirectoryIdOnColumns);
-                string справочникСтроки = ПолучитьИмяСправочникаПоЕгоИД(настройкаОтчёта.DirectoryIdOnRows);
+                string directoryNameByColumns = GetDirectoryNameByID(reportSetting.DirectoryIdOnColumns);
+                string directoryNameByRows = GetDirectoryNameByID(reportSetting.DirectoryIdOnRows);
 
                 // Добавим столбцы к таблице отчёта. 
                 // Учтём, что у двух справочников могут быть одни и те же имена атрибутов, и добавим префикс в виде имени справочника.
-                настройкаОтчёта.AttributesOfDirectoryOnRows.ForEach(attr =>
+                reportSetting.AttributesOfDirectoryOnRows.ForEach(attr =>
                 {
-                    отчёт.Columns.Add($"{справочникСтроки}-{attr}");
+                    report.Columns.Add($"{directoryNameByRows}-{attr}");
                 });
 
                 // Если по столбцам, надо вставить все поля указанного атрибута в таблицу как столбец:
-                настройкаОтчёта.AttributesOfDirectoryOnColumns.ForEach(attr =>
+                reportSetting.AttributesOfDirectoryOnColumns.ForEach(attr =>
                 {
                     // Смотрим, из какого справочника надо взять данные
-                    if (настройкаОтчёта.DirectoryIdOnColumns == 1)
+                    if (reportSetting.DirectoryIdOnColumns == 1)
                     {
                         // Если 1, берём объекты строительства
-                        ДобавитьВОтчётСтолбецСправочника(объектыСтроительства, attr, ref отчёт);
+                        AddDirectoryColumnToReport(constructionObjects, attr, ref report);
                     }
-                    else if (настройкаОтчёта.DirectoryIdOnColumns == 2)
+                    else if (reportSetting.DirectoryIdOnColumns == 2)
                     {
                         // Если 2, берём версииДанных
-                        ДобавитьВОтчётСтолбецСправочника(версииДанных, attr, ref отчёт);
+                        AddDirectoryColumnToReport(dataVersions, attr, ref report);
                     }
                 });
 
                 // Добавим данные в таблицу отчёта. Принцип тот же - проверим какой справочник как надо загрузить
-                if (настройкаОтчёта.DirectoryIdOnRows == 1)
+                if (reportSetting.DirectoryIdOnRows == 1)
                 {
                     // Если 1, берём объекты строительства в строки отчёта
-                    ДобавитьВОтчётСтроки(объектыСтроительства, справочникСтроки, настройкаОтчёта, ref отчёт);
+                    AddRowsToReport(constructionObjects, directoryNameByRows, reportSetting, ref report);
                 }
-                else if (настройкаОтчёта.DirectoryIdOnRows == 2)
+                else if (reportSetting.DirectoryIdOnRows == 2)
                 {
                     // Если 2, берём версииДанных
-                    ДобавитьВОтчётСтроки(версииДанных, справочникСтроки, настройкаОтчёта, ref отчёт);
+                    AddRowsToReport(dataVersions, directoryNameByRows, reportSetting, ref report);
                 }
 
                 // Теперь пройдёмся по таблице отчёта, и внесём в отчёт иды другого транспонированного справочника:
-                if (настройкаОтчёта.DirectoryIdOnColumns == 1)
+                if (reportSetting.DirectoryIdOnColumns == 1)
                 {
                     // Если 1, берём Иды строительства в строки отчёта
-                    ДобавитьВОтчётИдентификаторы(объектыСтроительства, справочникСтолбцы, настройкаОтчёта, ref отчёт);
+                    AddIDsToReport(constructionObjects, directoryNameByColumns, reportSetting, ref report);
                 }
-                else if (настройкаОтчёта.DirectoryIdOnColumns == 2)
+                else if (reportSetting.DirectoryIdOnColumns == 2)
                 {
                     // Если 2, берём берём Иды версииДанных
-                    ДобавитьВОтчётИдентификаторы(версииДанных, справочникСтолбцы, настройкаОтчёта, ref отчёт);
+                    AddIDsToReport(dataVersions, directoryNameByColumns, reportSetting, ref report);
                 }
 
                 // Уберём лишнее из названий заголовков таблицы
-                foreach (DataColumn столбец in отчёт.Columns)
+                foreach (DataColumn column in report.Columns)
                 {
-                    if (столбец.ColumnName.Contains("-"))
+                    if (column.ColumnName.Contains("-"))
                     {
-                        столбец.ColumnName = столбец.ColumnName.Split("-")[1];
+                        column.ColumnName = column.ColumnName.Split("-")[1];
                     }
                 }
 
-                return View("~/Views/ReportView.cshtml", отчёт);
+                return View("~/Views/ReportView.cshtml", report);
             }
             catch (Exception ex)
             {
@@ -143,90 +144,90 @@ namespace ReportService.Controllers
             }
         }
 
-        private void ДобавитьВОтчётИдентификаторы(IEnumerable<object> справочник, string справочникСтолбцы, ReportSetting настройкаОтчёта, ref DataTable отчёт)
+        private void AddIDsToReport(IEnumerable<object> directory, string directoryNameByColumns, ReportSetting reportSetting, ref DataTable report)
         {
-            foreach (object запись in справочник)
+            foreach (object record in directory)
             {
                 // Получим ИД данной записи в справочнике
-                int id = (int)ПолучитьЗначениеСвойстваОбъекта(запись, "ID");
+                int id = (int)GetObjectPropertyValueByAttrName(record, "ID");
 
-                foreach (string атрибут in настройкаОтчёта.AttributesOfDirectoryOnColumns)
+                foreach (string attr in reportSetting.AttributesOfDirectoryOnColumns)
                 {
-                    string имяСтолбца = Convert.ToString(ПолучитьЗначениеСвойстваОбъекта(запись, атрибут));
+                    string columnName = Convert.ToString(GetObjectPropertyValueByAttrName(record, attr));
 
-                    foreach (DataRow записьОтчёта in отчёт.Rows)
+                    foreach (DataRow recordReport in report.Rows)
                     {
                         // Проапдейтим формат:
                         // "<первая буква справочника по строкам><ид записи справочника по строкам> - <первая буква справочника по столбцам><ид записи справочника по столбцам>"
-                        записьОтчёта[имяСтолбца] += $" - {справочникСтолбцы.First()}{id}";
+                        recordReport[columnName] += $" - {directoryNameByColumns.First()}{id}";
                     }
                 }
             }
         }
 
-        private void ДобавитьВОтчётСтроки(IEnumerable<БазоваяЗаписьСправочника> справочник, string справочникСтроки, ReportSetting настройкаОтчёта, ref DataTable отчёт)
+        private void AddRowsToReport(IEnumerable<object> directory, string directoryName, ReportSetting reportSetting, ref DataTable report)
         {
-            foreach (object запись in справочник)
+            foreach (object record in directory)
             {
-                DataRow строка = отчёт.NewRow();
+                DataRow rowForAdd = report.NewRow();
 
-                foreach (string атрибут in настройкаОтчёта.AttributesOfDirectoryOnRows)
+                foreach (string attr in reportSetting.AttributesOfDirectoryOnRows)
                 {
                     // Берём указанный в настройках атрибут
-                    строка[$"{справочникСтроки}-{атрибут}"] = ПолучитьЗначениеСвойстваОбъекта(запись, атрибут);
+                    rowForAdd[$"{directoryName}-{attr}"] = GetObjectPropertyValueByAttrName(record, attr);
                 }
 
                 // Получим ИД данной записи в справочнике
-                int id = (int)ПолучитьЗначениеСвойстваОбъекта(запись, "ID");
+                int id = (int)GetObjectPropertyValueByAttrName(record, "ID");
 
                 // Добавим в столбцы транспонированной матрицы идентификаторы строки, с указанием того, что это Иды этого справочника
-                int startCol = настройкаОтчёта.AttributesOfDirectoryOnRows.Count;
-                int endCol = отчёт.Columns.Count;
+                int startCol = reportSetting.AttributesOfDirectoryOnRows.Count;
+                int endCol = report.Columns.Count;
 
                 for (int index = startCol; index < endCol; index++)
                 {
                     // Формат строк транспонированной матрицы "<первая буква справочника><ид записи справочника>"
-                    строка[index] = $"{справочникСтроки.First()}{id}";
+                    rowForAdd[index] = $"{directoryName.First()}{id}";
                 }
 
-                отчёт.Rows.Add(строка);
+                report.Rows.Add(rowForAdd);
             }
         }
 
         /// <summary>
         /// TODO: Надо проверить, кидается ли исключение, если такого св-ва у объекта не нашлось.
-        /// TODO: в MyUtils добавить. Может в других проектах пригодиться.
+        /// TODO: в MyUtils добавить. Может в других проектах пригодится.
         /// </summary>
-        /// <param name="объект"></param>
-        /// <param name="имяСвойства"></param>
+        /// <param name="readedObject"></param>
+        /// <param name="attrName"></param>
         /// <returns></returns>
-        private object ПолучитьЗначениеСвойстваОбъекта(object объект, string имяСвойства)
+        private object GetObjectPropertyValueByAttrName(object readedObject, string attrName)
         {
-            PropertyInfo pi = объект.GetType().GetProperty(имяСвойства);
+            PropertyInfo pi = readedObject.GetType().GetProperty(attrName);
 
             if (pi == null)
             {
                 throw new Exception("Запрашиваемое свойство не найдено!");
             }
 
-            return pi.GetValue(объект, null);
+            return pi.GetValue(readedObject, null);
         }
 
         /// <summary>
         /// Метод по добавлению в <see cref="DataTable"/> коллекцию столбцов, которая является коллекцией значений <see cref="string"/> справочника.
         /// </summary>
-        /// <param name="справочник"></param>
+        /// <param name="directory"></param>
         /// <param name="attr"></param>
-        /// <param name="отчёт"></param>
-        private void ДобавитьВОтчётСтолбецСправочника(IEnumerable<БазоваяЗаписьСправочника> справочник, string attr, ref DataTable отчёт)
+        /// <param name="report"></param>
+        private void AddDirectoryColumnToReport(IEnumerable<object> directory, string attr, ref DataTable report)
         {
-            foreach (object запись in справочник)
+            foreach (object record in directory)
             {
                 // Добавляем столбец
                 try
                 {
                     // Может оказаться, что не все поля в столбце будут уникальными, поэтому, пропускаем такие столбцы
-                    отчёт.Columns.Add(Convert.ToString(ПолучитьЗначениеСвойстваОбъекта(запись, attr)));
+                    report.Columns.Add(Convert.ToString(GetObjectPropertyValueByAttrName(record, attr)));
                 }
                 catch { } // Ничего не делаем, т.к. ошибка скорее всего несерьёзная
             }
@@ -236,22 +237,26 @@ namespace ReportService.Controllers
         /// Метод-костыль, так как только на финальном этапе реализации ReportService-а понял, что надо было делать запрос справочника по его Ид
         /// TODO: сделать метод по возвращению данных обоих справочников по ид (1 или 2)
         /// </summary>
-        /// <param name="идентификаторСправочника"></param>
+        /// <param name="directoryID"></param>
         /// <returns></returns>
-        private string ПолучитьИмяСправочникаПоЕгоИД(int идентификаторСправочника)
+        private string GetDirectoryNameByID(int directoryID)
         {
-            string имяСправочника = string.Empty;
+            string directoryName = string.Empty;
 
-            if (идентификаторСправочника == 1)
+            if (directoryID == 1)
             {
-                имяСправочника = "ОбъектыСтроительства";
+                directoryName = "ОбъектыСтроительства";
             }
-            else if (идентификаторСправочника == 2)
+            else if (directoryID == 2)
             {
-                имяСправочника = "ВерсииДанных";
+                directoryName = "ВерсииДанных";
+            }
+            else
+            {
+                throw new Exception($"Не найден справочник с ид {directoryID}");
             }
 
-            return имяСправочника;
+            return directoryName;
         }
 
         /// <summary>
@@ -262,18 +267,16 @@ namespace ReportService.Controllers
             using (var client = new HttpClient())
             {
                 HttpResponseMessage response;
-                string результатЗапроса = string.Empty;
 
                 // Запросим и десериализуем метаданные по справочникам:
                 // Для справочника "Объекты Строительства"
-                response = client.GetAsync(directoryServiceUrl + "/Construction?getMeta=true").Result;
-                результатЗапроса = response.Content.ReadAsStringAsync().Result;
-                МетаданныеСправочника метаданныеСпрОбъектыСтроительства = JsonConvert.DeserializeObject<МетаданныеСправочника>(результатЗапроса);
-
+                response = client.GetAsync($"{constructionObjectUrl}GetMetadata").Result;
+                DirectoryMetadata MetadataDirectoryOfConstructionObjects = response.Content.ReadAsAsync<DirectoryMetadata>().Result;
+                
                 // Для справочника "Версии Данных"
-                response = client.GetAsync(directoryServiceUrl + "/DataVersion?getMeta=true").Result;
-                результатЗапроса = response.Content.ReadAsStringAsync().Result;
-                МетаданныеСправочника метаданныеСпрВерсииДанных = JsonConvert.DeserializeObject<МетаданныеСправочника>(результатЗапроса);
+                response = client.GetAsync($"{DataVersionUrl}GetMetadata").Result;
+                DirectoryMetadata MetadataDirectoryOfDataVersions = response.Content.ReadAsAsync<DirectoryMetadata>().Result;
+
 
                 // TODO: Полученные метаданные можно сравнивать с метаданными объектов этого сервиса
                 // и в случае несовпадения, как-то уведомлять разработчиков о необх. поправки структуры классов.
@@ -281,66 +284,56 @@ namespace ReportService.Controllers
 
 
                 // Запрашиваем весь справочник "Объекты Строительства"
-                response = client.GetAsync(directoryServiceUrl + "/Construction").Result;
-                результатЗапроса = response.Content.ReadAsStringAsync().Result;
-
-                IEnumerable<ОбъектСтроительства> объектыСтроительства = JsonConvert.DeserializeObject<IEnumerable<ОбъектСтроительства>>(результатЗапроса);
-
-                // Запрашиваем весь справочник "Объекты Строительства"
-                response = client.GetAsync(directoryServiceUrl + "/DataVersion").Result;
-                результатЗапроса = response.Content.ReadAsStringAsync().Result;
-
-                IEnumerable<ВерсияДанных> версииДанных = JsonConvert.DeserializeObject<IEnumerable<ВерсияДанных>>(результатЗапроса);
-
-
-
-
+                response = client.GetAsync($"{constructionObjectUrl}GetAllDirectory").Result;
+                IEnumerable<ConstructionObject> сonstructionObjects = response.Content.ReadAsAsync<IEnumerable<ConstructionObject>>().Result;
+                
+                // Запрашиваем весь справочник "Версии Данных"
+                response = client.GetAsync($"{DataVersionUrl}GetAllDirectory").Result;
+                IEnumerable<DataVersion> dataVersions = response.Content.ReadAsAsync<IEnumerable<DataVersion>>().Result;
+                
                 // Запросим Объект Строительства с идом = 2:
-                int индексОбъектаСтроительства = 2;
+                int indexOfConstructionObject = 2;
 
-                response = client.GetAsync(directoryServiceUrl + $"/Construction/{индексОбъектаСтроительства}").Result;
-                результатЗапроса = response.Content.ReadAsStringAsync().Result;
+                response = client.GetAsync($"{constructionObjectUrl}Elements/{indexOfConstructionObject}").Result;
+                ConstructionObject сonstructionObject = response.Content.ReadAsAsync<ConstructionObject>().Result;
 
-                ОбъектСтроительства объектСтроительства = JsonConvert.DeserializeObject<ОбъектСтроительства>(результатЗапроса);
 
                 // Запросим Версию Данных с идом = 3:
-                int индексВерсииДанных = 3;
+                int indexOfDataVersion = 3;
 
-                response = client.GetAsync(directoryServiceUrl + $"/DataVersion/{индексВерсииДанных}").Result;
-                результатЗапроса = response.Content.ReadAsStringAsync().Result;
+                response = client.GetAsync($"{DataVersionUrl}Elements/{indexOfConstructionObject}").Result;
+                DataVersion dataVersion = response.Content.ReadAsAsync<DataVersion>().Result;
 
-                ВерсияДанных версияДанных = JsonConvert.DeserializeObject<ВерсияДанных>(результатЗапроса);
 
                 // Попробуем запросить Версию Данных с идом = 88:
-                индексВерсииДанных = 88;
+                indexOfDataVersion = 88;
 
-                response = client.GetAsync(directoryServiceUrl + $"/DataVersion/{индексВерсииДанных}").Result;
-                результатЗапроса = response.Content.ReadAsStringAsync().Result;
+                response = client.GetAsync($"{DataVersionUrl}Elements/{indexOfDataVersion}").Result;
 
-                // версияДанных будет = null после десериализации.
-                версияДанных = JsonConvert.DeserializeObject<ВерсияДанных>(результатЗапроса);
+                // dataVersionEmpty будет = null.
+                DataVersion dataVersionEmpty = response.Content.ReadAsAsync<DataVersion>().Result;   
             }
         }
 
         /// <summary>
         /// Метод по созданию файла конфигурации отчёта.
         /// </summary>
-        private void СоздатьНастройкуОтчёта()
+        private void CreateReportSetting()
         {
-            ReportSetting настройкаОтчёта = new ReportSetting();
+            ReportSetting reportSetting = new ReportSetting();
 
-            настройкаОтчёта.DirectoryIdOnRows = 1; // Берём "Объекты строительства"
-            настройкаОтчёта.DirectoryIdOnColumns = 2; // Берём "Версии данных"
+            reportSetting.DirectoryIdOnRows = 1; // Берём "Объекты строительства"
+            reportSetting.DirectoryIdOnColumns = 2; // Берём "Версии данных"
 
             // По заданию - справочник по строкам – «Объекты строительства» с атрибутами «Код объекта» и «Наименование»
-            настройкаОтчёта.AttributesOfDirectoryOnRows.Add("Code");
-            настройкаОтчёта.AttributesOfDirectoryOnRows.Add("Name");
+            reportSetting.AttributesOfDirectoryOnRows.Add("Code");
+            reportSetting.AttributesOfDirectoryOnRows.Add("Name");
 
             // По заданию - справочник по столбцам – «Версии данных» (возьмём только атрибут "Наименование", чтобы вывести столбцы Версия 1 Версия 2 Версия 3)
-            настройкаОтчёта.AttributesOfDirectoryOnColumns.Add("Name");
+            reportSetting.AttributesOfDirectoryOnColumns.Add("Name");
 
             // Сериализуем и в файлик "ReportSettings-1.json", где 1 - пусть будет номер конфигурации
-            string queryListForWriting = JsonConvert.SerializeObject(настройкаОтчёта);
+            string queryListForWriting = JsonConvert.SerializeObject(reportSetting);
 
             using (StreamWriter sw = new StreamWriter("ReportSettings-1.json", false, Encoding.UTF8))
             {

@@ -3,7 +3,7 @@
     /// <summary>
     /// Класс, описывающий запись в справочнике "DataVersions" (Версии данных).
     /// </summary>
-    public class ВерсияДанных : БазоваяЗаписьСправочника
+    public class DataVersion : BaseElementOfDirectory
     {
         /// <summary>
         /// Тип версии данных.

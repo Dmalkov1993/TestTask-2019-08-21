@@ -19,7 +19,7 @@
         /// Метод по получению всех данных из справочника "Объекты строительства".
         /// </summary>
         /// <returns></returns>
-        [Route("api/ConstructionObjectsDirectory/GetAllDirectory")]
+        [Route("api/ConstructionObjects/GetAllDirectory")]
         [HttpGet]
         public ActionResult<Dictionary<int, ConstructionObject>.ValueCollection> Get()
         {
@@ -41,7 +41,7 @@
         /// Метод по получению метаданных из справочника "Объекты строительства".
         /// </summary>
         /// <returns></returns>
-        [Route("api/ConstructionObjectsDirectory/GetMetadata")]
+        [Route("api/ConstructionObjects/GetMetadata")]
         [HttpGet]
         public ActionResult<DirectoryMetadata> GetMetadata()
         {
@@ -64,7 +64,7 @@
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        [Route("api/ConstructionObjectsDirectory/Elements/{id}")]
+        [Route("api/ConstructionObjects/Elements/{id}")]
         [HttpGet("{id}", Name = "GetConstruction")]
         public ActionResult<ConstructionObject> Get(int id) // GET: api/Construction/1
         {

@@ -27,14 +27,14 @@
 2) Откроется страница api\AppStart, выведется информация о считанных объектах справочников
 3) Получение данных производится следующим образом.
 - 3.1) Данные справочника "Объекты строительства":
-  - Получить все данные: https://localhost:44366/api/Construction
-  - Получить один из элементов: https://localhost:44366/api/Construction/[id], где **id** - от 1 до 4;
-  - **Запрос метаданных** о справочнике: https://localhost:44366/api/Construction?getMeta=true
+  - Получить все данные: https://localhost:44366/api/ConstructionObjects/GetAllDirectory
+  - Получить один из элементов: https://localhost:44366/api/ConstructionObjects/Elements/[id], где **id** - от 1 до 4;
+  - **Запрос метаданных** о справочнике: https://localhost:44366/api/ConstructionObjects/GetMetadata
 
 - 3.2) Данные справочника "Версии данных":
-  - Получить все данные: https://localhost:44366/api/DataVersion
-  - Получить один из элементов: https://localhost:44366/api/DataVersion/[id], где **id** - от 1 до 3;
-  - **Запрос метаданных** о справочнике: https://localhost:44366/api/DataVersion?getMeta=true
+  - Получить все данные: https://localhost:44366/api/DataVersions/GetAllDirectory
+  - Получить один из элементов: https://localhost:44366/api/DataVersions/Elements/[id], где **id** - от 1 до 3;
+  - **Запрос метаданных** о справочнике: https://localhost:44366/api/DataVersions/GetMetadata
   
 4) Открыть солюшен ReportService\ReportService.sln
 5) Нажать "Запустить" (прямо из под студии).

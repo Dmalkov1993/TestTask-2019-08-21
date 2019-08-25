@@ -1,11 +1,9 @@
-﻿using System.Reflection;
-
-namespace ReportService.Objects
+﻿namespace ReportService.Objects
 {
     /// <summary>
     /// Класс, описывающий атрибуты свойств справочника.
     /// </summary>
-    public class АтрибутСправочника
+    public class DirectoryAttribute
     {
         /// <summary>
         /// Имя атрибута.
