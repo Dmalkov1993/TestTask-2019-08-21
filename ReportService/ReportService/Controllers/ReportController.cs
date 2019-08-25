@@ -20,15 +20,24 @@ namespace ReportService.Controllers
     [ApiController]
     public class ReportController : Controller
     {
-        public ReportController(IOptions<List<ReportSetting>> reportSettings)
+        public ReportController(IOptions<List<ReportSetting>> reportSettings, IOptions<UrlSettings> urlSettings)
         {
+            // Подхватываем настройки для отчётов
             this.reportSettings = reportSettings.Value;
+
+            // Подхватываем наши URL-ы
+            this.urlSettings = urlSettings.Value;
         }
 
-        public List<ReportSetting> reportSettings { get; set; }
+        /// <summary>
+        /// Конфигурации отчётов из appsettings.json.
+        /// </summary>
+        private List<ReportSetting> reportSettings { get; set; }
 
-        public const string constructionObjectUrl = "https://localhost:44366/api/ConstructionObjects/";
-        public const string DataVersionUrl = "https://localhost:44366/api/DataVersions/";
+        /// <summary>
+        /// Конфигурации URL-ов из appsettings.json.
+        /// </summary>
+        private UrlSettings urlSettings { get; set; }
 
         // Файл настроек отчёта согласно заданию - "ReportSettings-1.json"
         // public const string fileWithSettingsForReport = "ReportSettings-3-All.json"; // Можно и "ReportSettings-2.json" и "ReportSettings-3-All.json"
@@ -57,11 +66,11 @@ namespace ReportService.Controllers
                     }
 
                     // Запрашиваем весь справочник "Объекты Строительства"
-                    response = client.GetAsync($"{constructionObjectUrl}GetAllDirectory").Result;
+                    response = await client.GetAsync($"{urlSettings.ConstructionObjectUrl}GetAllDirectory");
                     constructionObjects = await response.Content.ReadAsAsync<IEnumerable<ConstructionObject>>();
 
                     // Запрашиваем весь справочник "Версии данных"
-                    response = client.GetAsync($"{DataVersionUrl}GetAllDirectory").Result;
+                    response = await client.GetAsync($"{urlSettings.DataVersionUrl}GetAllDirectory");
                     dataVersions = await response.Content.ReadAsAsync<IEnumerable<DataVersion>>();
 
                     // dataVersions = JsonConvert.DeserializeObject<IEnumerable<DataVersion>>(requestResult);
@@ -285,11 +294,11 @@ namespace ReportService.Controllers
 
                 // Запросим и десериализуем метаданные по справочникам:
                 // Для справочника "Объекты Строительства"
-                response = client.GetAsync($"{constructionObjectUrl}GetMetadata").Result;
+                response = await client.GetAsync($"{urlSettings.ConstructionObjectUrl}GetMetadata");
                 DirectoryMetadata MetadataDirectoryOfConstructionObjects = await response.Content.ReadAsAsync<DirectoryMetadata>();
                 
                 // Для справочника "Версии Данных"
-                response = client.GetAsync($"{DataVersionUrl}GetMetadata").Result;
+                response = await client.GetAsync($"{urlSettings.DataVersionUrl}GetMetadata");
                 DirectoryMetadata MetadataDirectoryOfDataVersions = await response.Content.ReadAsAsync<DirectoryMetadata>();
 
 
@@ -299,31 +308,31 @@ namespace ReportService.Controllers
 
 
                 // Запрашиваем весь справочник "Объекты Строительства"
-                response = client.GetAsync($"{constructionObjectUrl}GetAllDirectory").Result;
+                response = await client.GetAsync($"{urlSettings.ConstructionObjectUrl}GetAllDirectory");
                 IEnumerable<ConstructionObject> сonstructionObjects = await response.Content.ReadAsAsync<IEnumerable<ConstructionObject>>();
                 
                 // Запрашиваем весь справочник "Версии Данных"
-                response = client.GetAsync($"{DataVersionUrl}GetAllDirectory").Result;
+                response = await client.GetAsync($"{urlSettings.DataVersionUrl}GetAllDirectory");
                 IEnumerable<DataVersion> dataVersions = await response.Content.ReadAsAsync<IEnumerable<DataVersion>>();
                 
                 // Запросим Объект Строительства с идом = 2:
                 int indexOfConstructionObject = 2;
 
-                response = client.GetAsync($"{constructionObjectUrl}Elements/{indexOfConstructionObject}").Result;
+                response = await client.GetAsync($"{urlSettings.ConstructionObjectUrl}Elements/{indexOfConstructionObject}");
                 ConstructionObject сonstructionObject = await response.Content.ReadAsAsync<ConstructionObject>();
 
 
                 // Запросим Версию Данных с идом = 3:
                 int indexOfDataVersion = 3;
 
-                response = client.GetAsync($"{DataVersionUrl}Elements/{indexOfConstructionObject}").Result;
+                response = await client.GetAsync($"{urlSettings.DataVersionUrl}Elements/{indexOfConstructionObject}");
                 DataVersion dataVersion = await response.Content.ReadAsAsync<DataVersion>();
 
 
                 // Попробуем запросить Версию Данных с идом = 88:
                 indexOfDataVersion = 88;
 
-                response = client.GetAsync($"{DataVersionUrl}Elements/{indexOfDataVersion}").Result;
+                response = await client.GetAsync($"{urlSettings.DataVersionUrl}Elements/{indexOfDataVersion}");
 
                 // dataVersionEmpty будет = null.
                 DataVersion dataVersionEmpty = await response.Content.ReadAsAsync<DataVersion>();   

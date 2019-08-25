@@ -33,6 +33,9 @@ namespace ReportService
 
             // создание объекта List<ReportSetting> (настроек отчётов) по ключам из конфигурации
             services.Configure<List<ReportSetting>>(Configuration.GetSection("ReportSettings"));
+
+            // Чтение конфигурации URL-ов
+            services.Configure<UrlSettings>(Configuration.GetSection("UrlSettings"));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
